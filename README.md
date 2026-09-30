@@ -2,14 +2,14 @@
 
 
 ## Executive Summary
-This project delivers an end-to-end credit risk and loan performance analytics solution using **BigQuery**, **Google Sheets**, and **Looker Studio**. The goal is to evaluate portfolio risk exposure, model expected losses (EL), and provide financial risk committees with interactive macro stress-testing capabilities.
+This project delivers an end-to-end credit risk and loan performance analytics solution using **BigQuery**, **Google Sheets**, and **Data Studio**. The goal is to evaluate portfolio risk exposure, model expected losses (EL), and provide financial risk committees with interactive macro stress-testing capabilities.
 
 ---
 
 ## Tech Stack
 * **Cloud Data Warehouse:** Google BigQuery (SQL)
 * **Financial Modeling & ETL:** Google Sheets / Python
-* **Data Visualization & BI:** Looker Studio
+* **Data Visualization & BI:** Data Studio
 * **Version Control:** Git & GitHub
 
 ---
@@ -114,14 +114,14 @@ Using Connected Sheets in Google Sheets, dynamic average aggregation on the `is_
 ---
 
 ## 9. Financial Risk Modeling & Macro Stress Testing
-* **Expected Loss (EL) Framework:** Calculated total portfolio risk exposure at **29.67M €** (dynamic BI view) using standard parameters EL = EAD * PD * LGD with a 45% LGD baseline). Note: A static pre-aggregation model built in Google Sheets previously estimated baseline exposure at **31.93M €** due to grouped loan-grade level estimations; the live BigQuery and Looker Studio architecture utilizes row-level evaluation for higher operational precision.
+* **Expected Loss (EL) Framework:** Calculated total portfolio risk exposure at **29.67M €** (dynamic BI view) using standard parameters EL = EAD * PD * LGD with a 45% LGD baseline). Note: A static pre-aggregation model built in Google Sheets previously estimated baseline exposure at **31.93M €** due to grouped loan-grade level estimations; the live BigQuery and Data Studio architecture utilizes row-level evaluation for higher operational precision.
 * **Stress Testing & Sensitivity Analysis:** Simulated a macroeconomic shock (+10% default uplift across tiers), demonstrating an additional capital loss impact under stress testing, projecting up to **59.34M €** under severe risk uplifts.
 * **Business Value:** Translates statistical default probabilities into monetary risk exposure, providing risk committees with quantitative inputs for capital provisioning.
 
 ---
 
 ## 10. Data Studio BI Architecture & Visualization Strategy
-* **Single Source of Truth (SSOT):** Connected Looker Studio directly to the `credit_risk_enriched` BigQuery table to ensure real-time updates and eliminate redundant offline files.
+* **Single Source of Truth (SSOT):** Connected Data Studio directly to the `credit_risk_enriched` BigQuery table to ensure real-time updates and eliminate redundant offline files.
 * **Multi-Page Executive Dashboard:** Designed a professional 3-page reporting suite structured for institutional stakeholders:
   * **Page 1 (Executive Summary):** Global KPIs (Total Volume, Default Rate, Expected Loss) paired with risk distribution by loan grade and intent.
   * **Page 2 (Risk Segmentation):** Heatmap analysis crossing income brackets with debt burden categories, alongside workforce stability metrics.
