@@ -1,0 +1,131 @@
+# 1 -- Preview the first 50 records for initial inspection (equivalent to .head() in Pandas)
+SELECT *
+FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`
+LIMIT 50;
+
+---
+
+# 2 -- Statistical summary of all columns using UNION ALL (equivalent to pandas .describe())
+WITH unpivoted_data AS (
+    SELECT 'person_age' AS `column`, CAST(person_age AS STRING) AS valor, CAST(person_age AS FLOAT64) AS valor_num FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'person_income', CAST(person_income AS STRING), CAST(person_income AS FLOAT64) FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'person_home_ownership', CAST(person_home_ownership AS STRING), NULL FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'person_emp_length', CAST(person_emp_length AS STRING), CAST(person_emp_length AS FLOAT64) FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'loan_intent', CAST(loan_intent AS STRING), NULL FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'loan_grade', CAST(loan_grade AS STRING), NULL FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'loan_amnt', CAST(loan_amnt AS STRING), CAST(loan_amnt AS FLOAT64) FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'loan_int_rate', CAST(loan_int_rate AS STRING), CAST(loan_int_rate AS FLOAT64) FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'loan_status', CAST(loan_status AS STRING), CAST(loan_status AS FLOAT64) FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'loan_percent_income', CAST(loan_percent_income AS STRING), CAST(loan_percent_income AS FLOAT64) FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'cb_person_default_on_file', CAST(cb_person_default_on_file AS STRING), NULL FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk` UNION ALL
+    SELECT 'cb_person_cred_hist_length', CAST(cb_person_cred_hist_length AS STRING), CAST(cb_person_cred_hist_length AS FLOAT64) FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`
+)
+SELECT 
+    `column`,
+    COUNT(valor) AS total_count,
+    COUNT(DISTINCT valor) AS unique_values,
+    ROUND(AVG(valor_num), 2) AS average,
+    ROUND(STDDEV(valor_num), 2) AS std_dev,
+    MIN(valor_num) AS `min`,
+    MAX(valor_num) AS `max`
+FROM unpivoted_data
+GROUP BY `column`;
+
+---
+
+# 3 Calculate total row count, absolute null counts, and null percentages per column for data quality assessment
+WITH stats AS (
+  SELECT
+    COUNT(*) AS total_rows,
+    COUNTIF(person_age IS NULL) AS person_age_null,
+    COUNTIF(person_income IS NULL) AS person_income_null,
+    COUNTIF(person_home_ownership IS NULL) AS person_home_ownership_null,
+    COUNTIF(person_emp_length IS NULL) AS person_emp_length_null,
+    COUNTIF(loan_intent IS NULL) AS loan_intent_null,
+    COUNTIF(loan_grade IS NULL) AS loan_grade_null,
+    COUNTIF(loan_amnt IS NULL) AS loan_amnt_null,
+    COUNTIF(loan_int_rate IS NULL) AS loan_int_rate_null,
+    COUNTIF(loan_status IS NULL) AS loan_status_null,
+    COUNTIF(loan_percent_income IS NULL) AS loan_percent_income_null,
+    COUNTIF(cb_person_default_on_file IS NULL) AS cb_person_default_on_file_null,
+    COUNTIF(cb_person_cred_hist_length IS NULL) AS cb_person_cred_hist_length_null
+  FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`
+)
+SELECT
+  total_rows,
+  person_age_null,
+  ROUND(SAFE_DIVIDE(person_age_null, total_rows) * 100, 1) AS person_age_pct,
+  person_income_null,
+  ROUND(SAFE_DIVIDE(person_income_null, total_rows) * 100, 1) AS person_income_pct,
+  person_home_ownership_null,
+  ROUND(SAFE_DIVIDE(person_home_ownership_null, total_rows) * 100, 1) AS person_home_ownership_pct,
+  person_emp_length_null,
+  ROUND(SAFE_DIVIDE(person_emp_length_null, total_rows) * 100, 1) AS person_emp_length_pct,
+  stats.loan_intent_null,
+  ROUND(SAFE_DIVIDE(loan_intent_null, total_rows) * 100, 1) AS loan_intent_pct,
+  loan_grade_null,
+  ROUND(SAFE_DIVIDE(loan_grade_null, total_rows) * 100, 1) AS loan_grade_pct,
+  loan_amnt_null,
+  ROUND(SAFE_DIVIDE(loan_amnt_null, total_rows) * 100, 1) AS loan_amnt_pct,
+  loan_int_rate_null,
+  ROUND(SAFE_DIVIDE(loan_int_rate_null, total_rows) * 100, 1) AS loan_int_rate_pct,
+  loan_status_null,
+  ROUND(SAFE_DIVIDE(loan_status_null, total_rows) * 100, 1) AS loan_status_porcentaje,
+  loan_percent_income_null,
+  ROUND(SAFE_DIVIDE(loan_percent_income_null, total_rows) * 100, 1) AS loan_percent_income_pct,
+  cb_person_default_on_file_null,
+  ROUND(SAFE_DIVIDE(cb_person_default_on_file_null, total_rows) * 100, 1) AS cb_person_default_on_file_pct,
+  cb_person_cred_hist_length_null,
+  ROUND(SAFE_DIVIDE(cb_person_cred_hist_length_null, total_rows) * 100, 1) AS cb_person_cred_hist_length_pct
+FROM stats;
+
+---
+
+# 4 -- Validate data types using SAFE_CAST and regex checks to detect formatting issues or invalid characters
+SELECT 
+  -- Integer validations
+  COUNTIF(SAFE_CAST(person_age AS INT64) IS NULL AND person_age IS NOT NULL) AS invalid_person_age,
+  COUNTIF(SAFE_CAST(person_income AS INT64) IS NULL AND person_income IS NOT NULL) AS invalid_person_income,
+  COUNTIF(SAFE_CAST(loan_amnt AS INT64) IS NULL AND loan_amnt IS NOT NULL) AS invalid_loan_amnt,
+  COUNTIF(SAFE_CAST(loan_status AS INT64) IS NULL AND loan_status IS NOT NULL) AS invalid_loan_status,
+  COUNTIF(SAFE_CAST(cb_person_cred_hist_length AS INT64) IS NULL AND cb_person_cred_hist_length IS NOT NULL) AS invalid_cred_hist_length,
+
+  -- Float validations
+  COUNTIF(SAFE_CAST(person_emp_length AS FLOAT64) IS NULL AND person_emp_length IS NOT NULL) AS invalid_person_emp_length,
+  COUNTIF(SAFE_CAST(loan_int_rate AS FLOAT64) IS NULL AND loan_int_rate IS NOT NULL) AS invalid_loan_int_rate,
+  COUNTIF(SAFE_CAST(loan_percent_income AS FLOAT64) IS NULL AND loan_percent_income IS NOT NULL) AS invalid_loan_percent_income,
+
+  -- String / Boolean validations (checking for unexpected numeric digits or formatting issues)
+  COUNTIF(REGEXP_CONTAINS(CAST(person_home_ownership AS STRING), r'[0-9]')) AS invalid_home_ownership_digits,
+  COUNTIF(REGEXP_CONTAINS(CAST(loan_intent AS STRING), r'[0-9]')) AS invalid_loan_intent_digits,
+  COUNTIF(REGEXP_CONTAINS(CAST(loan_grade AS STRING), r'[0-9]')) AS invalid_loan_grade_digits,
+  COUNTIF(SAFE_CAST(cb_person_default_on_file AS BOOL) IS NULL AND cb_person_default_on_file IS NOT NULL) AS invalid_default_on_file_format
+
+FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`;
+
+---
+
+# 5 -- Filter out extreme outliers and physiologically impossible records (e.g., age > 100, invalid employment length) and create the cleaned staging table
+CREATE OR REPLACE TABLE `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk_cleaned` AS
+SELECT *
+FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`
+WHERE person_age <= 100
+  AND person_emp_length <= (person_age - 14)
+  AND person_emp_length <= 60;
+
+# 6 -- Generates the credit_risk_enriched staging table by adding calculated business logic: a binary default flag (is_default), income brackets, and loan burden categories based on standard financial risk benchmarks.
+CREATE OR REPLACE TABLE `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk_enriched` AS
+SELECT 
+    t.*,
+    CASE WHEN t.loan_status = 1 THEN 1 ELSE 0 END AS is_default,
+    CASE 
+        WHEN t.person_income < 30000 THEN 'Low Income (<30k)'
+        WHEN t.person_income BETWEEN 30000 AND 70000 THEN 'Medium Income (30k-70k)'
+        ELSE 'High Income (>70k)'
+    END AS income_bracket,
+    CASE 
+        WHEN t.loan_percent_income < 0.15 THEN 'Healthy (<15%)'
+        WHEN t.loan_percent_income BETWEEN 0.15 AND 0.30 THEN 'Caution (15-30%)'
+        ELSE 'Dangerous (>30%)'
+    END AS burden_category
+FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk_cleaned` t;

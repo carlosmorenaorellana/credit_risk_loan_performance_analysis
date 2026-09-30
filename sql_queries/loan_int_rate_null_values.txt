@@ -1,0 +1,57 @@
+# 1 
+SELECT 
+    CASE 
+        WHEN loan_int_rate >= 5 AND loan_int_rate < 8 THEN '5 - 8'
+        WHEN loan_int_rate >= 8 AND loan_int_rate < 11 THEN '8 - 11'
+        WHEN loan_int_rate >= 11 AND loan_int_rate < 14 THEN '11 - 14'
+        WHEN loan_int_rate >= 14 AND loan_int_rate < 17 THEN '14 - 17'
+        WHEN loan_int_rate >= 17 THEN '> 17'
+        ELSE 'Null'
+    END AS interest_range,
+    COUNT(*) AS frequency,
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk), 1) AS percentage
+FROM sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk_cleaned
+GROUP BY interest_range
+ORDER BY MIN(loan_int_rate)
+
+---
+
+# 2
+-- Compare missing vs non-null interest rates grouped by loan grade
+SELECT 
+    loan_grade,
+    COUNTIF(loan_int_rate IS NULL) AS missing_int_rate_count,
+    COUNTIF(loan_int_rate IS NOT NULL) AS valid_int_rate_count,
+    COUNT(*) AS total_loans,
+    ROUND(COUNTIF(loan_int_rate IS NULL) * 100.0 / COUNT(*), 1) AS missing_percentage
+FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`
+GROUP BY loan_grade
+ORDER BY loan_grade;
+
+---
+
+# 3
+-- Compare missing vs non-null interest rates grouped by loan intent
+SELECT 
+    loan_intent,
+    COUNTIF(loan_int_rate IS NULL) AS missing_int_rate_count,
+    COUNTIF(loan_int_rate IS NOT NULL) AS valid_int_rate_count,
+    COUNT(*) AS total_loans,
+    ROUND(COUNTIF(loan_int_rate IS NULL) * 100.0 / COUNT(*), 1) AS missing_percentage
+FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`
+GROUP BY loan_intent
+ORDER BY loan_intent;
+
+---
+
+# 4
+-- Compare missing vs non-null interest rates grouped by default history
+SELECT 
+    cb_person_default_on_file,
+    COUNTIF(loan_int_rate IS NULL) AS missing_int_rate_count,
+    COUNTIF(loan_int_rate IS NOT NULL) AS valid_int_rate_count,
+    COUNT(*) AS total_loans,
+    ROUND(COUNTIF(loan_int_rate IS NULL) * 100.0 / COUNT(*), 1) AS missing_percentage
+FROM `sincere-cortex-467814-j3.bank_loan_credit_risk.credit_risk`
+GROUP BY cb_person_default_on_file
+ORDER BY cb_person_default_on_file;
